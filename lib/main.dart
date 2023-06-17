@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-void main() => runApp(MyApp());
+void main() => runApp(const Kamus());
 
-class MyApp extends StatelessWidget {
+class Kamus extends StatelessWidget {
+  const Kamus({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'Kamus Beser',
       home: InfinityScroll(),
     );
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
 }
 
 class InfinityScroll extends StatefulWidget {
+  const InfinityScroll({Key? key}) : super(key: key);
   @override
   _InfinityScrollState createState() => _InfinityScrollState();
 }
@@ -24,15 +26,15 @@ class _InfinityScrollState extends State<InfinityScroll> {
   int _currentPage = 1;
   bool _isLoading = false;
   bool _searching = false;
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   Future<void> _fetchData() async {
     setState(() {
       _isLoading = true;
     });
 
-    final response = await http
-        .get(Uri.parse('http://127.0.0.1:8000/api/beser?page=$_currentPage'));
+    final response = await http.get(Uri.parse(
+        'https://nawproject.000webhostapp.com/public/api/beser?page=$_currentPage'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -50,15 +52,16 @@ class _InfinityScrollState extends State<InfinityScroll> {
       _isLoading = true;
     });
 
-    Uri url = Uri.parse('http://127.0.0.1:8000/api/beser/search');
+    Uri url = Uri.parse(
+        'https://nawproject.000webhostapp.com/public/api/beser/search');
     Map<String, String> headers = {'Content-Type': 'application/json'};
     String body = jsonEncode({'word': query});
     http.Response response = await http.post(url, headers: headers, body: body);
 
     if (response.statusCode == 200) {
       setState(() {
-        _data = json.decode(response.body);
         _isLoading = false;
+        _data = json.decode(response.body);
       });
     } else {
       throw Exception('Gagal memuat data.');
@@ -84,49 +87,61 @@ class _InfinityScrollState extends State<InfinityScroll> {
     return Scaffold(
       appBar: AppBar(
         title: !_searching
-            ? const Text('Kamus Beser')
+            ? const Text(
+                'Kamus Beser',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
             : TextField(
                 controller: _searchController,
-                style: TextStyle(color: Colors.white, fontSize: 16),
-                decoration: InputDecoration(
-                    hintText: "Cari kata..",
-                    hintStyle: TextStyle(color: Colors.grey))),
+                style: const TextStyle(color: Colors.white, fontSize: 20),
+                decoration: const InputDecoration(
+                  hintText: "Cari kata..",
+                  hintStyle: TextStyle(color: Color.fromARGB(255, 73, 73, 73)),
+                ),
+                cursorColor: const Color.fromARGB(255, 73, 73, 73),
+              ),
         actions: [
           IconButton(
-              onPressed: () async {
-                String query = _searchController.text;
-                setState(() {
-                  _searching = !_searching;
-                });
-                query.isEmpty ? await _refreshData() : await _searchData(query);
-              },
-              icon: Icon(Icons.search, color: Colors.white)),
+            onPressed: () async {
+              String query = _searchController.text;
+              setState(() {
+                _searching = !_searching;
+              });
+              if (query.isEmpty) {
+                await _refreshData();
+              } else {
+                await _searchData(query);
+              }
+            },
+            icon: const Icon(Icons.search, color: Colors.white),
+          ),
         ],
       ),
-      body: Column(
-        children: [
-          if (_data.isEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 150.0),
+      body: _data.isEmpty
+          ? Center(
+              child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 150.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     "Data tidak ditemukan",
                     style: TextStyle(
                       color: Colors.grey,
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _refreshData,
-                    child: Text("Refresh"),
+                    child: const Text("Refresh"),
                   ),
                 ],
               ),
-            ),
-          Expanded(
-            child: RefreshIndicator(
+            ))
+          : RefreshIndicator(
               onRefresh: _refreshData,
               child: NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification scrollInfo) {
@@ -141,7 +156,7 @@ class _InfinityScrollState extends State<InfinityScroll> {
                   itemCount: _data.length + 1,
                   itemBuilder: (BuildContext context, int index) {
                     if (index == _data.length) {
-                      return Padding(
+                      return const Padding(
                         padding: EdgeInsets.symmetric(vertical: 50.0),
                         child: Center(
                           child: CircularProgressIndicator(),
@@ -149,16 +164,27 @@ class _InfinityScrollState extends State<InfinityScroll> {
                       );
                     }
                     return ListTile(
-                      title: Text(_data[index]['indonesia']),
-                      subtitle: Text(_data[index]['beser']),
+                      title: Text(
+                        _data[index]['indonesia'].toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 22.0,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.black,
+                        ),
+                      ),
+                      subtitle: Text(
+                        _data[index]['beser'].toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.grey,
+                        ),
+                      ),
                     );
                   },
                 ),
               ),
             ),
-          ),
-        ],
-      ),
     );
   }
 }
