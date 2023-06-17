@@ -1,6 +1,9 @@
 # kamus_beser
 
-A new Flutter project.
+Proyek Flutter baru dengan implementasi API Kamus Bahasa Beser-Indonesia. lihat API [disini](https://github.com/nauwimanuel/kamus).
+
+![Tampilan Aplikasi Beser](BeserApp.PNG)
+![Tampilan Aplikasi Beser Fungsi Pencarian](BeserApp-Search.PNG)
 
 ## Getting Started
 
